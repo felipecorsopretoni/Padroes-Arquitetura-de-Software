@@ -1,5 +1,5 @@
 class ReportService:
-    def init(self, repository):
+    def __init__(self, repository):
         self.repo = repository
 
     def calc_total_by_customer(self, name: str) -> float:

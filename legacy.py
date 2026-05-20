@@ -28,8 +28,14 @@ class Sis:
         self.report_service.generate(tipo)
 
     def proc_pag(self, id, m, vl):
+    
         order = self.get_ped(id)
-        order_total = order['tot'] if order else 0.0
+        if not order:
+            print("Metodo de pagamento invalido!")  
+            return False
+            
+        
+        order_total = order['tot']
         return self.payment_service.process_payment(id, m, vl, order_total)
 
     def validar_estoque(self, its):
