@@ -1,5 +1,7 @@
 import pytest
+
 from legacy import Sis
+
 
 @pytest.fixture
 def sis(tmp_path, monkeypatch):
@@ -113,7 +115,7 @@ def test_status_entregue_corporativo(sis):
 
 # Cobre calc_tot_cli (linhas 82-87)
 def test_calc_tot_cli(sis):
-    itens = [{'nome': 'p1', 'p': 100, 'q': 1, 'tipo': 'normal'}]
+    assert sis.calc_tot_cli('Ninguem') == 0
 
 # Cobre linhas 66-79 (upd_st aprovado com vip)
 def test_status_aprovado_vip(sis):

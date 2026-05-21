@@ -26,14 +26,14 @@ class ReportService:
             return
 
         if report_type == "clientes":
-            rows = self._repository.get_distinct_customers()
+            customers = self._repository.get_distinct_customers()
             print("=== RELATORIO DE CLIENTES ===")
-            for customer in rows:
+            for customer in customers:
                 total_amount = self.calc_total_by_customer(customer.name)
                 print(
                     f"Cliente: {customer.name} ({customer.customer_type}) - "
                     f"Total gasto: R${total_amount:.2f}"
                 )
             with open("rel_clientes.txt", "w", encoding="utf-8") as file_pointer:
-                for customer in rows:
+                for customer in customers:
                     file_pointer.write(f"{customer.name},{customer.customer_type}\n")

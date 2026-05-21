@@ -7,12 +7,12 @@ cov:
 	pytest --cov=. --cov-report=term-missing --cov-report=html
 
 lint:
-	ruff check .
+	python3 -m ruff check .
 
 type:
-	mypy --strict src legacy.py tests
+	python3 -m mypy --strict src legacy.py
 
 complexity:
-	radon cc src legacy.py -s -a
+	python3 -m radon cc src legacy.py -s -a
 
 all: lint type test cov complexity

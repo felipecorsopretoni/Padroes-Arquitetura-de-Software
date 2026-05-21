@@ -1,0 +1,37 @@
+@startuml
+class Sis
+class PedEspecial
+class OrderService
+class PaymentService
+class ReportService
+class PricingService
+class SQLiteOrderRepository
+class NotificationService
+class NotificationPublisher
+class OrderFactoryRegistry
+class PaymentStrategyRegistry
+class SpecialOrderService
+abstract class PaymentStrategy
+abstract class ItemPricingStrategy
+abstract class CustomerDiscountStrategy
+abstract class OrderAdjustmentStrategy
+abstract class NotificationObserver
+
+Sis --> OrderService
+Sis --> PaymentService
+Sis --> ReportService
+PedEspecial --> SpecialOrderService
+OrderService --> OrderFactoryRegistry
+OrderService --> PricingService
+OrderService --> NotificationService
+OrderService --> SQLiteOrderRepository
+PaymentService --> PaymentStrategyRegistry
+PaymentService --> OrderService
+ReportService --> SQLiteOrderRepository
+NotificationService --> NotificationPublisher
+NotificationPublisher --> NotificationObserver
+PaymentStrategyRegistry --> PaymentStrategy
+PricingService --> ItemPricingStrategy
+PricingService --> CustomerDiscountStrategy
+PricingService --> OrderAdjustmentStrategy
+@enduml

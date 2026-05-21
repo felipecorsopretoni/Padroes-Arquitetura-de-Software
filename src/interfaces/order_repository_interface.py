@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from src.models.customer import Customer
 from src.models.order import Order
 
+
 class OrderRepositoryInterface(ABC):
     @abstractmethod
     def save(self, order: Order) -> int:

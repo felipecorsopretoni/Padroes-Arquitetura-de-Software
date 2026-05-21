@@ -1,5 +1,6 @@
 import json
 import sqlite3
+from typing import cast
 
 from src.interfaces.order_repository_interface import OrderRepositoryInterface
 from src.models.customer import Customer
@@ -32,7 +33,10 @@ class SQLiteOrderRepository(OrderRepositoryInterface):
             ),
         )
         self._db.commit()
-        return int(self._cursor.lastrowid)
+        lastrowid = self._cursor.lastrowid
+        if lastrowid is None:
+            raise ValueError("Database did not return a lastrowid")
+        return int(lastrowid)
 
     def get_by_id(self, order_id: int) -> Order | None:
         self._cursor.execute("SELECT * FROM ped WHERE id=?", (order_id,))
@@ -51,7 +55,10 @@ class SQLiteOrderRepository(OrderRepositoryInterface):
 
     def get_distinct_customers(self) -> list[Customer]:
         self._cursor.execute("SELECT DISTINCT cli, tp FROM ped")
-        return [Customer(name=row[0], customer_type=row[1]) for row in self._cursor.fetchall()]
+        return [
+            Customer(name=str(row[0]), customer_type=str(row[1]))
+            for row in self._cursor.fetchall()
+        ]
 
     def get_orders_by_customer(self, customer_name: str) -> list[Order]:
         self._cursor.execute("SELECT * FROM ped WHERE cli=?", (customer_name,))
@@ -66,10 +73,10 @@ class SQLiteOrderRepository(OrderRepositoryInterface):
         return Order(
             customer=Customer(name=str(row[1]), customer_type=str(row[6])),
             items=tuple(OrderItem.from_legacy(item) for item in payload_items),
-            total=float(row[3]),
+            total=float(cast(float, row[3])),
             status=str(row[4]),
             created_at=str(row[5]),
-            order_id=int(row[0]),
+            order_id=int(cast(int, row[0])),
         )
 
     def _normalize_item(self, raw_item: object) -> LegacyItemPayload:

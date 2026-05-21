@@ -1,9 +1,7 @@
 import inspect
 import pkgutil
 from importlib import import_module
-from typing import TypeVar
-
-T = TypeVar("T")
+from typing import Any
 
 
 def _walk_modules(package_name: str) -> None:
@@ -15,17 +13,17 @@ def _walk_modules(package_name: str) -> None:
         import_module(module_info.name)
 
 
-def _iter_subclasses(base_class: type[T]) -> list[type[T]]:
-    subclasses: list[type[T]] = []
+def _iter_subclasses(base_class: type[Any]) -> list[type[Any]]:
+    subclasses: list[type[Any]] = []
     for subclass in base_class.__subclasses__():
         subclasses.append(subclass)
         subclasses.extend(_iter_subclasses(subclass))
     return subclasses
 
 
-def discover_instances(package_name: str, base_class: type[T]) -> list[T]:
+def discover_instances(package_name: str, base_class: type[Any]) -> list[Any]:
     _walk_modules(package_name)
-    instances: list[T] = []
+    instances: list[Any] = []
     seen: set[str] = set()
     for subclass in _iter_subclasses(base_class):
         key = f"{subclass.__module__}.{subclass.__qualname__}"

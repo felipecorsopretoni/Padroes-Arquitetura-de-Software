@@ -1,4 +1,4 @@
-from typing import Sequence
+from collections.abc import Sequence
 
 from src.models.order_item import OrderItem
 from src.strategies.base import (

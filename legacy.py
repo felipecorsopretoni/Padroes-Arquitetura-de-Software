@@ -2,6 +2,7 @@ from src.main import build_app_container, build_special_app_container
 from src.models.order import LegacyOrderPayload
 from src.models.order_item import LegacyItemPayload
 
+
 class Sis:
     def __init__(self, db_path: str = "loja.db") -> None:
         container = build_app_container(db_path)
