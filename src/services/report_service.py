@@ -1,30 +1,39 @@
+from src.interfaces.order_repository_interface import OrderRepositoryInterface
+
+
 class ReportService:
-    def __init__(self, repository):
-        self.repo = repository
+    def __init__(self, repository: OrderRepositoryInterface) -> None:
+        self._repository = repository
 
     def calc_total_by_customer(self, name: str) -> float:
-        orders = self.repo.get_orders_by_customer(name)
-        return sum(row[3] for row in orders)
+        orders = self._repository.get_orders_by_customer(name)
+        return sum(order.total for order in orders)
 
-    def generate(self, report_type: str):
-        if report_type == 'vendas':
-            rows = self.repo.get_all_orders()
+    def generate(self, report_type: str) -> None:
+        if report_type == "vendas":
+            rows = self._repository.get_all_orders()
             print("=== RELATORIO DE VENDAS ===")
-            tot_g = 0
-            for r in rows:
-                print(f"Pedido #{r[0]} - Cliente: {r[1]} - Total: R${r[3]:.2f} - Status: {r[4]}")
-                tot_g += r[3]
-            print(f"Total Geral: R${tot_g:.2f}")
-            with open('rel_vendas.txt', 'w') as f:
-                f.write(f"Total de vendas: {tot_g}")
+            total_amount = 0.0
+            for order in rows:
+                print(
+                    f"Pedido #{order.order_id} - Cliente: {order.customer.name} - "
+                    f"Total: R${order.total:.2f} - Status: {order.status}"
+                )
+                total_amount += order.total
+            print(f"Total Geral: R${total_amount:.2f}")
+            with open("rel_vendas.txt", "w", encoding="utf-8") as file_pointer:
+                file_pointer.write(f"Total de vendas: {total_amount}")
+            return
 
-        elif report_type == 'clientes':
-            rows = self.repo.get_distinct_customers()
+        if report_type == "clientes":
+            rows = self._repository.get_distinct_customers()
             print("=== RELATORIO DE CLIENTES ===")
-            for r in rows:
-                name, client_type = r[0], r[1]
-                tot = self.calc_total_by_customer(name)
-                print(f"Cliente: {name} ({client_type}) - Total gasto: R${tot:.2f}")
-            with open('rel_clientes.txt', 'w') as f:
-                for r in rows:
-                    f.write(f"{r[0]},{r[1]}\n")
+            for customer in rows:
+                total_amount = self.calc_total_by_customer(customer.name)
+                print(
+                    f"Cliente: {customer.name} ({customer.customer_type}) - "
+                    f"Total gasto: R${total_amount:.2f}"
+                )
+            with open("rel_clientes.txt", "w", encoding="utf-8") as file_pointer:
+                for customer in rows:
+                    file_pointer.write(f"{customer.name},{customer.customer_type}\n")

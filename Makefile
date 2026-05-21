@@ -1,7 +1,18 @@
+.PHONY: test lint type cov complexity all
+
 test:
 	pytest -v
 
 cov:
 	pytest --cov=. --cov-report=term-missing --cov-report=html
 
-all: test cov
+lint:
+	ruff check .
+
+type:
+	mypy --strict src legacy.py tests
+
+complexity:
+	radon cc src legacy.py -s -a
+
+all: lint type test cov complexity

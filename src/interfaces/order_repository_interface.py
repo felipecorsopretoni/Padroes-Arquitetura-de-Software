@@ -1,26 +1,33 @@
 from abc import ABC, abstractmethod
 
+from src.models.customer import Customer
+from src.models.order import Order
+
 class OrderRepositoryInterface(ABC):
     @abstractmethod
-    def save(self, client_name: str, items_str: str, total: float, client_type: str, date_str: str) -> int:
-        pass
+    def save(self, order: Order) -> int:
+        raise NotImplementedError
 
     @abstractmethod
-    def get_by_id(self, order_id: int) -> tuple:
-        pass
+    def get_by_id(self, order_id: int) -> Order | None:
+        raise NotImplementedError
 
     @abstractmethod
     def update_status(self, order_id: int, status: str) -> None:
-        pass
+        raise NotImplementedError
 
     @abstractmethod
-    def get_all_orders(self) -> list:
-        pass
+    def get_all_orders(self) -> list[Order]:
+        raise NotImplementedError
 
     @abstractmethod
-    def get_distinct_customers(self) -> list:
-        pass
+    def get_distinct_customers(self) -> list[Customer]:
+        raise NotImplementedError
 
     @abstractmethod
-    def get_orders_by_customer(self, customer_name: str) -> list:
-        pass
+    def get_orders_by_customer(self, customer_name: str) -> list[Order]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def close(self) -> None:
+        raise NotImplementedError

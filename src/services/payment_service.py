@@ -1,26 +1,40 @@
-class PaymentService:
-    def __init__(self, order_service):
-        self.order_service = order_service
+from typing import Protocol
 
-    def process_payment(self, order_id: int, method: str, value: float, order_total: float) -> bool:
-        if value < order_total:
-            print("Valor insuficiente!")
-            return False
-        
-        if method == 'cartao':
-            print("Processando pagamento com cartao...")
-            print("Cartao validado!")
-            self.order_service.update_status(order_id, 'aprovado')
-            return True
-        elif method == 'pix':
-            print("Gerando QR Code PIX...")
-            print("PIX recebido!")
-            self.order_service.update_status(order_id, 'aprovado')
-            return True
-        elif method == 'boleto':
-            print("Gerando boleto...")
-            print("Boleto gerado!")
-            return True
-        else:
+from src.strategies.registry import PaymentStrategyRegistry
+
+
+class StatusUpdater(Protocol):
+    def update_status(self, order_id: int, status: str) -> None:
+        ...
+
+
+class PaymentService:
+    def __init__(
+        self,
+        status_updater: StatusUpdater,
+        strategy_registry: PaymentStrategyRegistry,
+    ) -> None:
+        self._status_updater = status_updater
+        self._strategy_registry = strategy_registry
+
+    def process_payment(
+        self,
+        order_id: int,
+        method: str,
+        value: float,
+        order_total: float,
+    ) -> bool:
+        strategy = self._strategy_registry.get(method)
+        if strategy is None:
             print("Metodo de pagamento invalido!")
             return False
+
+        required_amount = strategy.required_amount(order_total)
+        if value < required_amount:
+            print("Valor insuficiente!")
+            return False
+
+        processed = strategy.process(value, required_amount)
+        if processed and strategy.auto_approve:
+            self._status_updater.update_status(order_id, "aprovado")
+        return processed

@@ -1,3 +1,10 @@
 __pycache__/
 .coverage
 .pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+loja.db
+rel_vendas.txt
+rel_clientes.txt
+*.pdf

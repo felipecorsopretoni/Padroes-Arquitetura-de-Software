@@ -1,74 +1,66 @@
-from src.repositories.order_repository import SQLiteOrderRepository
-from src.services.notification_service import NotificationService
-from src.services.order_service import OrderService
-from src.services.payment_service import PaymentService
-from src.services.report_service import ReportService
+from src.main import build_app_container, build_special_app_container
+from src.models.order import LegacyOrderPayload
+from src.models.order_item import LegacyItemPayload
 
 class Sis:
-    def __init__(self):
-        self.repository = SQLiteOrderRepository()
-        self.notifier = NotificationService()
-        self.order_service = OrderService(self.repository, self.notifier)
-        self.payment_service = PaymentService(self.order_service)
-        self.report_service = ReportService(self.repository)
+    def __init__(self, db_path: str = "loja.db") -> None:
+        container = build_app_container(db_path)
+        self._repository = container.repository
+        self._order_service = container.order_service
+        self._payment_service = container.payment_service
+        self._report_service = container.report_service
 
-    def add_ped(self, n, its, t):
-        return self.order_service.create_order(n, its, t)
+    def add_ped(self, n: str, its: list[LegacyItemPayload], t: str) -> int:
+        return self._order_service.create_order(n, its, t)
 
-    def get_ped(self, id):
-        return self.order_service.get_order(id)
+    def get_ped(self, order_id: int) -> LegacyOrderPayload | None:
+        return self._order_service.get_order(order_id)
 
-    def upd_st(self, id, s):
-        self.order_service.update_status(id, s)
+    def upd_st(self, order_id: int, status: str) -> None:
+        self._order_service.update_status(order_id, status)
 
-    def calc_tot_cli(self, n):
-        return self.report_service.calc_total_by_customer(n)
+    def calc_tot_cli(self, n: str) -> float:
+        return self._report_service.calc_total_by_customer(n)
 
-    def gerar_rel(self, tipo):
-        self.report_service.generate(tipo)
+    def gerar_rel(self, tipo: str) -> None:
+        self._report_service.generate(tipo)
 
-    def proc_pag(self, id, m, vl):
-    
-        order = self.get_ped(id)
-        if not order:
-            print("Metodo de pagamento invalido!")  
+    def proc_pag(self, order_id: int, method: str, value: float) -> bool:
+        order = self._order_service.get_order_entity(order_id)
+        if order is None:
+            print("Metodo de pagamento invalido!")
             return False
-            
-        
-        order_total = order['tot']
-        return self.payment_service.process_payment(id, m, vl, order_total)
+        return self._payment_service.process_payment(
+            order_id=order_id,
+            method=method,
+            value=value,
+            order_total=order.total,
+        )
 
-    def validar_estoque(self, its):
-        return self.order_service.validate_stock(its)
+    def validar_estoque(self, its: list[LegacyItemPayload]) -> bool:
+        return self._order_service.validate_stock(its)
 
-    def cancelar_pedido(self, id):
-        self.order_service.cancel_order(id)
+    def cancelar_pedido(self, order_id: int) -> None:
+        self._order_service.cancel_order(order_id)
 
-    def close(self):
-        self.repository.close()
+    def close(self) -> None:
+        self._repository.close()
 
 
-class PedEspecial(Sis):
-    # Mantida e adaptada temporariamente conforme as regras do EFC para manter compatibilidade no Sprint 1
-    def add_ped(self, n, its, t):
-        from datetime import datetime
-        import json
-        dt = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        tot = 0
-        for i in its:
-            if i['tipo'] == 'normal':
-                tot += i['p'] * i['q']
-            elif i['tipo'] == 'desc10':
-                tot += i['p'] * i['q'] * 0.9
-            elif i['tipo'] == 'desc20':
-                tot += i['p'] * i['q'] * 0.8
-        tot = tot * 1.15
-        its_str = json.dumps(its)
-        
-        order_id = self.repository.save(n, its_str, tot, t, dt)
-        print(f"Email especial enviado para {n}: Pedido especial recebido!")
-        return order_id
+class PedEspecial:
+    def __init__(self, db_path: str = "loja.db") -> None:
+        container = build_special_app_container(db_path)
+        self._repository = container.repository
+        self._order_service = container.order_service
 
-    def upd_st(self, id, s):
-        self.repository.update_status(id, s)
-        print(f"Pedido especial {id} -> {s}")
+    def add_ped(self, n: str, its: list[LegacyItemPayload], t: str) -> int:
+        return self._order_service.create_order(n, its, t)
+
+    def get_ped(self, order_id: int) -> LegacyOrderPayload | None:
+        return self._order_service.get_order(order_id)
+
+    def upd_st(self, order_id: int, status: str) -> None:
+        self._order_service.update_status(order_id, status)
+
+    def close(self) -> None:
+        self._repository.close()
